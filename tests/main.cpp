@@ -391,5 +391,5 @@ int main() {
 
     std::clog << (success ? "success" : "failure") << std::endl;
 
-    return success;
+    return success ? 0 : -1;
 }
