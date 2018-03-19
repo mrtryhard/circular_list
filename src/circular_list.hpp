@@ -38,7 +38,7 @@ namespace mrt { namespace containers {
         using const_reference = const U&;
         using iterator_category = std::random_access_iterator_tag;
         using size_type = std::size_t;
-        using difference_type = int;
+        using difference_type = std::ptrdiff_t;
         using my_it = circular_iterator<value_type>;
 
     public:
@@ -51,7 +51,7 @@ namespace mrt { namespace containers {
 
     public:
         circular_iterator() = delete;
-        explicit circular_iterator(pointer val, pointer buffer, size_type max_size) : value{val}, base{buffer}, max_size{max_size} {}
+        explicit circular_iterator(pointer val, pointer buffer, size_type size) : value{val}, base{buffer}, max_size{size} {}
         circular_iterator(const circular_iterator<value_type>& other) : value{other.value}, base{other.base}, max_size{other.max_size} {}
         
         my_it& operator=(const my_it& other) {
@@ -89,19 +89,19 @@ namespace mrt { namespace containers {
         }
 
         my_it operator-(int n) const noexcept {
-            return operator+(-n);
+            return *this + (-n);
         }
 
         difference_type operator-(my_it n) const noexcept {
             if (value >= n.value) {
-                return value - n.value;
+                return static_cast<difference_type>(value - n.value);
             } else {
-                return (value + (max_size + 1) - n.value);
+                return (value + static_cast<value_type>(max_size + 1) - n.value);
             }
         }
 
         my_it& operator-=(int n) noexcept {
-            return operator+=(-n);
+            return *this += (-n);
         }
 
         my_it& operator++(int) {
@@ -110,7 +110,8 @@ namespace mrt { namespace containers {
         }
 
         my_it& operator++() {
-            return operator++(1);
+            value = previous(base, max_size, value);
+            return *this;
         }
 
         my_it& operator--(int) {
@@ -119,7 +120,8 @@ namespace mrt { namespace containers {
         }
 
         my_it& operator--() {
-            return operator--(1);
+            value = next(base, max_size, value);
+            return *this;
         }
 
         reference operator[](std::size_t n) {
@@ -155,11 +157,11 @@ namespace mrt { namespace containers {
         using const_reference = const value_type&;
         using iterator = circular_iterator<value_type>;
         using const_iterator = const circular_iterator<value_type>;
-        using reverse_iterator = std::reverse_iterator<circular_iterator<value_type>>;
+        using reverse_iterator = std::reverse_iterator<circular_iterator<value_type> >;
         using const_reverse_iterator = const reverse_iterator;
 
     private:
-        size_type max_size;        
+        size_type max_size;
         pointer buffer;
         pointer head;
         pointer tail;
@@ -167,20 +169,19 @@ namespace mrt { namespace containers {
     public:
         circular_list() = delete;
 
-        explicit circular_list(size_type max_size) 
-            : max_size{max_size}, 
-            buffer{new value_type[max_size + 1]},
-            head{buffer},
-            tail{buffer} 
+        explicit circular_list(size_type size) 
+            : max_size{size}, 
+            buffer{new value_type[size + 1]}
         {
+            head = tail = buffer;
         }
         
         explicit circular_list(std::initializer_list<value_type> list) 
             : max_size{list.size()},
-            buffer{new value_type[list.size() + 1]},
-            head{buffer + list.size()},
-            tail{buffer}
+            buffer{new value_type[list.size() + 1]}
         {
+            head = buffer + list.size();
+            tail = buffer;
             try {
                 std::copy(std::rbegin(list), std::rend(list), begin());
             } catch (...) {
@@ -193,22 +194,24 @@ namespace mrt { namespace containers {
         circular_list(It first, It last)
             : max_size{std::distance(first, last)} ,
               buffer{new value_type[max_size + 1]},
-              head{buffer},
+              head{buffer + 1},
               tail{buffer}
         {
             try {
-                std::copy(first, last, std::begin(buffer));
+                for(auto it = first; it != last; ++it) {
+                    push(*it);
+                }
             } catch (...) {
                 delete [] buffer;
                 throw;
             }
         }
 
-        circular_list(circular_list&& other) noexcept
+        circular_list(circular_list<value_type>&& other) noexcept
             : max_size{other.max_size},
             buffer{other.buffer},
-            head{buffer},
-            tail{buffer}
+            head{other.buffer},
+            tail{other.buffer}
         {
             other.buffer = {};
             other.head = {};
@@ -216,15 +219,16 @@ namespace mrt { namespace containers {
             other.max_size = {};
         }
 
-        circular_list(circular_list& other) 
+        circular_list(circular_list<value_type>& other) 
             : max_size{other.max_size},
             buffer{new value_type[max_size + 1]},
             head{buffer + 1},
             tail{buffer}
         {
             try {
-                std::copy(std::rbegin(other), std::rend(other), begin());
-                head = buffer + max_size;
+                for(auto it = other.rbegin(); it != other.rend(); ++it) {
+                    push(*it);
+                }
             } catch (...) {
                 delete [] buffer;
                 throw;
@@ -235,9 +239,10 @@ namespace mrt { namespace containers {
             if (this == &other) return *this;
 
             head = buffer + 1;
-            std::copy(std::rbegin(other), std::rend(other), begin());
-            head = buffer + static_cast<int>((other.head - other.buffer));
-            tail = buffer + static_cast<int>((other.tail - other.buffer));
+            tail = buffer;
+            for(auto it = other.rbegin(); it != other.rend(); ++it) {
+                push(*it);
+            }
 
             return *this;
         }
