@@ -1,7 +1,6 @@
 #include <iostream>
 #include <iterator>
-#include "circular_list.hpp"
-#include "../../containers/circular_list.hpp"
+#include "../src/circular_list.hpp"
 
 using namespace mrt::containers;
 
@@ -370,27 +369,27 @@ namespace {
     }
 }
 
-namespace mrt { namespace tests { namespace circular_list {
-    bool execute() noexcept {
-        bool success{ true };
+int main() {
+    bool success{ true };
 
-        success = success & test_front();
-        success = success & test_front_when_popped();
-        success = success & test_back();
-        success = success & test_back_when_popped();
-        success = success & test_empty_init();
-        success = success & test_empty_after_clear();
-        success = success & test_overwrite();
-        success = success & test_full_init_empty();
-        success = success & test_full_when_full();
-        success = success & test_full_when_missing_one();
-        success = success & test_size_is_good();
-        success = success & test_initializer_list();
-        success = success & test_iterator();
-        success = success & test_reverse_iterator();
-        success = success & test_range();
-        success = success & test_copies();
+    success = success & test_front();
+    success = success & test_front_when_popped();
+    success = success & test_back();
+    success = success & test_back_when_popped();
+    success = success & test_empty_init();
+    success = success & test_empty_after_clear();
+    success = success & test_overwrite();
+    success = success & test_full_init_empty();
+    success = success & test_full_when_full();
+    success = success & test_full_when_missing_one();
+    success = success & test_size_is_good();
+    success = success & test_initializer_list();
+    success = success & test_iterator();
+    success = success & test_reverse_iterator();
+    success = success & test_range();
+    success = success & test_copies();
 
-        return success;
-    }
-}}}
+    std::clog << (success ? "success" : "failure") << std::endl;
+
+    return success;
+}
