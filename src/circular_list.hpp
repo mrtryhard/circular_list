@@ -67,8 +67,8 @@ namespace mrt { namespace containers {
         const_reference operator*() const noexcept { return *value; }
         pointer operator->() noexcept { return &(operator*()); }
         const_pointer operator->() const noexcept { return &(operator*()); }
-        reference operator [] (difference_type n) { return *(*this + n); }
-        const_reference operator [] (difference_type n) const { return *(*this + n); }
+        reference operator [] (difference_type n) noexcept { return *(*this + n); }
+        const_reference operator [] (difference_type n) const noexcept { return *(*this + n); }
         bool operator==(const my_it& other) { return value == other.value; }
         bool operator!=(const my_it& other) { return !(*this == other); }
         
@@ -126,10 +126,6 @@ namespace mrt { namespace containers {
         my_it& operator--() {
             value = next(base, max_size, value);
             return *this;
-        }
-
-        reference operator[](std::size_t n) {
-            return *(operator+(n));
         }
 
         bool operator<(my_it b) const noexcept {
