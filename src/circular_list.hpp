@@ -48,10 +48,12 @@ namespace mrt { namespace containers {
         pointer value;
         pointer base;
         size_type max_size;
+        bool tail_over_head;
 
     public:
         circular_iterator() = delete;
-        explicit circular_iterator(pointer val, pointer buffer, size_type size) : value{val}, base{buffer}, max_size{size} {}
+        explicit circular_iterator(pointer val, pointer buffer, size_type max_size, bool tail_over_head) 
+            : value{val}, base{buffer}, max_size{max_size}, tail_over_head{tail_over_head} {}
         circular_iterator(const circular_iterator<value_type>& other) : value{other.value}, base{other.base}, max_size{other.max_size} {}
         
         my_it& operator=(const my_it& other) {
@@ -63,10 +65,14 @@ namespace mrt { namespace containers {
 
         reference operator*() noexcept { return *value; }
         const_reference operator*() const noexcept { return *value; }
+        pointer operator->() noexcept { return &(operator*()); }
+        const_pointer operator->() const noexcept { return &(operator*()); }
+        reference operator [] (difference_type n) { return *(*this + n); }
+        const_reference operator [] (difference_type n) const { return *(*this + n); }
         bool operator==(const my_it& other) { return value == other.value; }
         bool operator!=(const my_it& other) { return !(*this == other); }
         
-        my_it& operator+=(int n) noexcept {
+        my_it& operator+=(difference_type n) noexcept {
             if (n >= 0) {
                 while(n--) value = previous(base, max_size, value);    
             } else {
@@ -76,31 +82,29 @@ namespace mrt { namespace containers {
             return *this;
         }
 
-        my_it operator+(int n) const noexcept {
-            pointer tmp = value;
+        my_it operator+(difference_type n) const noexcept {
+            my_it new_it{value, base, max_size, tail_over_head};
+            new_it += n;
 
-            if (n >= 0) {
-                while(n--) tmp = previous(base, max_size, tmp);    
-            } else {
-                while(n++) tmp = next(base, max_size, tmp);
-            }
-
-            return my_it{ tmp, base, max_size };
+            return new_it;
         }
 
-        my_it operator-(int n) const noexcept {
-            return *this + (-n);
+        my_it operator-(difference_type n) const noexcept {
+            my_it new_it{value, base, max_size, tail_over_head};
+            new_it += -n;
+
+            return new_it;
         }
 
         difference_type operator-(my_it n) const noexcept {
-            if (value >= n.value) {
-                return static_cast<difference_type>(value - n.value);
+            if (tail_over_head) {
+                return (n.value + static_cast<value_type>(max_size + 1) - value);
             } else {
-                return (value + static_cast<value_type>(max_size + 1) - n.value);
+                return n.value - value;
             }
         }
 
-        my_it& operator-=(int n) noexcept {
+        my_it& operator-=(difference_type n) noexcept {
             return *this += (-n);
         }
 
@@ -198,9 +202,7 @@ namespace mrt { namespace containers {
               tail{buffer}
         {
             try {
-                for(auto it = first; it != last; ++it) {
-                    push(*it);
-                }
+                std::copy(first, last, begin());
             } catch (...) {
                 delete [] buffer;
                 throw;
@@ -226,9 +228,9 @@ namespace mrt { namespace containers {
             tail{buffer}
         {
             try {
-                for(auto it = other.rbegin(); it != other.rend(); ++it) {
-                    push(*it);
-                }
+                std::copy(std::rbegin(other), std::rend(other), begin());
+                head = buffer + (other.head - other.buffer);
+                tail = buffer + (other.tail - other.buffer);
             } catch (...) {
                 delete [] buffer;
                 throw;
@@ -240,9 +242,11 @@ namespace mrt { namespace containers {
 
             head = buffer + 1;
             tail = buffer;
-            for(auto it = other.rbegin(); it != other.rend(); ++it) {
-                push(*it);
-            }
+
+            std::copy(std::rbegin(other), std::rend(other), begin());
+
+            head = buffer + (other.head - other.buffer);
+            tail = buffer + (other.tail - other.buffer);
 
             return *this;
         }
@@ -324,35 +328,35 @@ namespace mrt { namespace containers {
         }
 
         iterator begin() noexcept {
-            return iterator{ previous(buffer, max_size, head), buffer, max_size };
+            return iterator{ previous(buffer, max_size, head), buffer, max_size, tail > head };
         }
 
         reverse_iterator rbegin() noexcept {
-            return reverse_iterator{ iterator{ previous(buffer, max_size, tail), buffer, max_size } };
+            return reverse_iterator{ iterator{ previous(buffer, max_size, tail), buffer, max_size, tail > head } };
         }
 
         const_iterator cbegin() const noexcept {
-            return const_iterator{ previous(buffer, max_size, head), buffer, max_size };
+            return const_iterator{ previous(buffer, max_size, head), buffer, max_size, tail > head };
         }
 
         const_reverse_iterator crbegin() const noexcept {
-            return const_reverse_iterator{ const_iterator{ previous(buffer, max_size, tail), buffer, max_size } };
+            return const_reverse_iterator{ const_iterator{ previous(buffer, max_size, tail), buffer, max_size, tail > head } };
         }
 
         iterator end() noexcept {
-            return iterator{ previous(buffer, max_size, tail), buffer, max_size };
+            return iterator{ previous(buffer, max_size, tail), buffer, max_size, tail > head };
         }
 
         reverse_iterator rend() noexcept {
-            return reverse_iterator{ iterator{ previous(buffer, max_size, head), buffer, max_size } };
+            return reverse_iterator{ iterator{ previous(buffer, max_size, head), buffer, max_size, tail > head } };
         }
 
         const_iterator cend() const noexcept {
-            return const_iterator{ previous(buffer, max_size, tail), buffer, max_size };
+            return const_iterator{ previous(buffer, max_size, tail), buffer, max_size, tail > head };
         }
 
         const_reverse_iterator crend() const noexcept {
-            return const_reverse_iterator{ const_iterator{ previous(buffer, max_size, head), buffer, max_size } };
+            return const_reverse_iterator{ const_iterator{ previous(buffer, max_size, head), buffer, max_size, tail > head } };
         }
     };
 }}

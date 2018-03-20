@@ -367,6 +367,82 @@ namespace {
 
         return true;
     }
+
+    bool test_iterator_assign() {
+        circular_list<int> list{5, 6, 7, 8, 9};
+        auto it = list.begin();
+        *it = 50;
+        it++;
+        *it = 60;
+        *(++it) = 70;
+        *(it + 1) = 80;
+        it += 2;
+        *it = 90;
+
+        auto it_check = list.begin();
+
+        if (*it_check != 50) {
+            std::clog << "operator* not working on circular_iterator" << std::endl;
+            return false;
+        }
+
+        it_check++;
+        if (*it_check != 60) {
+            std::clog << "it++ might not work as intended" << std::endl;
+            return false;
+        }
+
+        it_check++;
+        if (*it_check != 70) {
+            std::clog << "operator++(int) might not work as intended" << std::endl;
+            return false;
+        }
+
+        it_check++;
+        if (*it_check != 80) {
+            std::clog << "operator+ might not work as intended" << std::endl;
+            return false;
+        }
+
+        it_check++;
+        if (*it_check != 90) {
+            std::clog << "Unexpected iterator error" << std::endl;
+            return false;
+        }
+
+        return true;
+    }
+
+    bool test_iterator_arith() {
+        circular_list<int> tail_over_head{5, 6, 7, 8, 9};
+        tail_over_head.push(15);
+        tail_over_head.push(18);
+
+        auto begin = tail_over_head.begin();
+        auto end = tail_over_head.end();
+
+        circular_list<int>::iterator::difference_type diff = end - begin;
+
+        if (diff != 5) {
+            std::clog << "operator-(iterator) not working as intended" << std::endl;
+            return false;
+        } 
+
+        circular_list<int> head_over_tail(4);
+        head_over_tail.push(60);
+        head_over_tail.push(65);
+
+        begin = head_over_tail.begin();
+        end = head_over_tail.end();
+        diff = end - begin;
+
+        if (diff != 2) {
+            std::clog << "operator-(iterator) not working as intended" << std::endl;
+            return false;
+        }
+
+        return true;
+    }
 }
 
 int main() {
@@ -388,6 +464,8 @@ int main() {
     success = success & test_reverse_iterator();
     success = success & test_range();
     success = success & test_copies();
+    success = success & test_iterator_assign();
+    success = success & test_iterator_arith();
 
     std::clog << (success ? "success" : "failure") << std::endl;
 
