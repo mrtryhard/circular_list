@@ -98,7 +98,7 @@ namespace mrt { namespace containers {
 
         difference_type operator-(my_it n) const noexcept {
             if (tail_over_head) {
-                return (n.value + static_cast<value_type>(max_size + 1) - value);
+                return ((base + static_cast<std::ptrdiff_t>(max_size + 1)) - value) + (n.value - base);
             } else {
                 return n.value - value;
             }
@@ -217,14 +217,14 @@ namespace mrt { namespace containers {
             other.max_size = {};
         }
 
-        circular_list(circular_list<value_type>& other) 
+        circular_list(const circular_list<value_type>& other)
             : max_size{other.max_size},
             buffer{new value_type[max_size + 1]},
             head{buffer + 1},
             tail{buffer}
         {
             try {
-                std::copy(std::rbegin(other), std::rend(other), begin());
+                std::copy(other.crbegin(), other.crend(), begin());
                 head = buffer + (other.head - other.buffer);
                 tail = buffer + (other.tail - other.buffer);
             } catch (...) {
@@ -233,13 +233,13 @@ namespace mrt { namespace containers {
             }
         }
 
-        circular_list<value_type>& operator=(circular_list<value_type>& other) {
+        circular_list<value_type>& operator=(const circular_list<value_type>& other) {
             if (this == &other) return *this;
 
             head = buffer + 1;
             tail = buffer;
 
-            std::copy(std::rbegin(other), std::rend(other), begin());
+            std::copy(other.crbegin(), other.crend(), begin());
 
             head = buffer + (other.head - other.buffer);
             tail = buffer + (other.tail - other.buffer);
