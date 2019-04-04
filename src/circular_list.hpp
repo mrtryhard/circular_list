@@ -210,7 +210,7 @@ namespace mrt { namespace containers {
             buffer{other.buffer},
             head{other.head},
             tail{other.tail},
-			max_size{other.max_size}
+		    max_size{other.max_size}
         {
             other.buffer = {};
             other.head = {};
@@ -253,7 +253,7 @@ namespace mrt { namespace containers {
             buffer = other.buffer;
             head = other.head;
             tail = other.tail;
-			max_size = other.max_size;
+		    max_size = other.max_size;
             other.buffer = {};
             other.head = {};
             other.tail = {};
@@ -305,10 +305,10 @@ namespace mrt { namespace containers {
         }
 
 		void swap(circular_list<T>& other) noexcept {
-			std::swap(this->head, other.head);
-			std::swap(this->tail, other.tail);
-			std::swap(this->buffer, other.buffer);
-			std::swap(this->max_size, other.max_size);
+		    std::swap(this->head, other.head);
+		    std::swap(this->tail, other.tail);
+		    std::swap(this->buffer, other.buffer);
+		    std::swap(this->max_size, other.max_size);
 		}
 
         bool empty() const noexcept {
@@ -367,7 +367,7 @@ namespace mrt { namespace containers {
 
 	template <class TValue>
 	void swap(circular_list<TValue>& a, circular_list<TValue>& b) noexcept {
-		a.swap(b);
+	    a.swap(b);
 	}
 }}
 
