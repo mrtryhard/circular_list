@@ -208,8 +208,8 @@ namespace mrt { namespace containers {
         circular_list(circular_list<value_type>&& other) noexcept
             : max_size{other.max_size},
             buffer{other.buffer},
-            head{other.buffer},
-            tail{other.buffer}
+            head{other.head},
+            tail{other.tail}
         {
             other.buffer = {};
             other.head = {};
