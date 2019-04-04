@@ -140,8 +140,7 @@ namespace {
         return true;
     }
 
-    bool test_full_when_missing_one()
-    {
+    bool test_full_when_missing_one() {
         circular_list<int> list(4);
         list.push(1);
         list.push(2);
@@ -154,6 +153,27 @@ namespace {
 
         return true;
     }
+
+	bool test_swap_move_ctor() {
+		circular_list<int> list1(4);
+		circular_list<int> list2(2);
+
+		list1.push(1);
+		list1.push(2);
+		list1.push(3);
+
+		std::swap(list1, list2);
+
+		if (list2.size() != 3) {
+			std::clog << "Circular list does not swap correctly." << std::endl;
+			return false;
+		}
+		if (list1.size() != 0) {
+			std::clog << "Circular list does not swap correctly." << std::endl;
+			return false;
+		}
+		return true;
+	}
 
     bool test_size_is_good() {
         circular_list<int> list(4);
@@ -466,6 +486,7 @@ int main() {
     success = success & test_copies();
     success = success & test_iterator_assign();
     success = success & test_iterator_arith();
+	success = success & test_swap_move_ctor();
 
     std::clog << (success ? "success" : "failure") << std::endl;
 
