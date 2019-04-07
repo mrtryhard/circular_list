@@ -1,5 +1,6 @@
 #include <iostream>
 #include <iterator>
+#include <string>
 #include "../src/circular_list.hpp"
 
 using namespace mrt::containers;
@@ -64,7 +65,7 @@ namespace {
         list.push(4);
         list.pop();
 
-        if(list.back() != 3) {
+        if (list.back() != 3) {
             std::clog << "Back does not work when popped" << std::endl;
             return false;
         }
@@ -74,7 +75,7 @@ namespace {
 
     bool test_empty_init() {
         circular_list<int> list(4);
-        
+
         if (!list.empty()) {
             std::clog << "Circular list is not empty" << std::endl;
             return false;
@@ -116,8 +117,8 @@ namespace {
 
     bool test_full_init_empty() {
         circular_list<int> list(4);
-        
-        if(list.full()) {
+
+        if (list.full()) {
             std::clog << "Circular list is full when just initialized." << std::endl;
             return false;
         }
@@ -154,26 +155,31 @@ namespace {
         return true;
     }
 
-	bool test_swap_move_ctor() {
-		circular_list<int> list1(4);
-		circular_list<int> list2(2);
+    bool test_swap_move_ctor() {
+        circular_list<int> list1(4);
+        circular_list<int> list2(2);
 
-		list1.push(1);
-		list1.push(2);
-		list1.push(3);
+        list1.push(1);
+        list1.push(2);
+        list1.push(3);
 
-		std::swap(list1, list2);
+        std::swap(list1, list2);
 
-		if (list2.size() != 3) {
-			std::clog << "Circular list does not swap correctly." << std::endl;
-			return false;
-		}
-		if (list1.size() != 0) {
-			std::clog << "Circular list does not swap correctly." << std::endl;
-			return false;
-		}
-		return true;
-	}
+        if (list2.size() != 3) {
+            std::clog << "Circular list does not swap correctly." << std::endl;
+            return false;
+        }
+        if (list1.size() != 0) {
+            std::clog << "Circular list does not swap correctly." << std::endl;
+            return false;
+        }
+        if (!list1.empty()) {
+            std::clog << "Should be empty after swap." << std::endl;
+            return false;
+        }
+
+        return true;
+    }
 
     bool test_size_is_good() {
         circular_list<int> list(4);
@@ -193,7 +199,7 @@ namespace {
             std::clog << "Size is incorrect for list." << std::endl;
             return false;
         }
-        
+
         list.push(4);
         list.push(5);
         size = list.size();
@@ -288,7 +294,7 @@ namespace {
     }
 
     bool test_reverse_iterator() {
-    circular_list<int> list(3);
+        circular_list<int> list(3);
         list.push(5);
         list.push(6);
         list.push(8);
@@ -329,17 +335,17 @@ namespace {
         list.push(3);
 
         for (int i : list) {
-            if ( i != 1 && i != 2 && i != 3) {
+            if (i != 1 && i != 2 && i != 3) {
                 std::clog << "Forward range for(...) doesn't work properly." << std::endl;
                 return false;
             }
         }
 
-        for(auto it = list.crbegin(); it != list.crend(); ++it) {
-            if ( *it != 1 && *it != 2 && *it != 3) {
+        for (auto it = list.crbegin(); it != list.crend(); ++it) {
+            if (*it != 1 && *it != 2 && *it != 3) {
                 std::clog << "Reverse iteration doesn't work properly." << std::endl;
                 return false;
-            }            
+            }
         }
 
         return true;
@@ -351,7 +357,7 @@ namespace {
         initial.push(19);
         initial.push(20);
 
-        circular_list<int> copy_ctor{initial};
+        circular_list<int> copy_ctor{ initial };
         if (!copy_ctor.full()) {
             std::clog << "Copy ctor doesn't work." << std::endl;
             return false;
@@ -385,11 +391,25 @@ namespace {
             return false;
         }
 
+        circular_list<int> copy_empty(5);
+        circular_list<int> copy_from_copy_empty(copy_empty);
+        if (!copy_from_copy_empty.empty() || !copy_empty.empty()) {
+            std::clog << "Should be empty!!" << std::endl;
+            return false;
+        }
+
+        circular_list<int> move_empty(5);
+        circular_list<int> move_from_move_empty(std::move(move_empty));
+        if (!move_from_move_empty.empty() || !move_empty.empty()) {
+            std::clog << "Should be empty!!" << std::endl;
+            return false;
+        }
+
         return true;
     }
 
     bool test_iterator_assign() {
-        circular_list<int> list{5, 6, 7, 8, 9};
+        circular_list<int> list{ 5, 6, 7, 8, 9 };
         auto it = list.begin();
         *it = 50;
         it++;
@@ -434,7 +454,7 @@ namespace {
     }
 
     bool test_iterator_arith() {
-        circular_list<int> tail_over_head{5, 6, 7, 8, 9};
+        circular_list<int> tail_over_head{ 5, 6, 7, 8, 9 };
         tail_over_head.push(15);
         tail_over_head.push(18);
 
@@ -446,7 +466,7 @@ namespace {
         if (diff != 5) {
             std::clog << "operator-(iterator) not working as intended" << std::endl;
             return false;
-        } 
+        }
 
         circular_list<int> head_over_tail(4);
         head_over_tail.push(60);
@@ -486,7 +506,7 @@ int main() {
     success = success & test_copies();
     success = success & test_iterator_assign();
     success = success & test_iterator_arith();
-	success = success & test_swap_move_ctor();
+    success = success & test_swap_move_ctor();
 
     std::clog << (success ? "success" : "failure") << std::endl;
 
